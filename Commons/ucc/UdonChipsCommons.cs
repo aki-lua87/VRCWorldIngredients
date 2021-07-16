@@ -23,14 +23,19 @@ namespace aki_lua87.UdonScripts.Commons
         // 全プレイヤーのUdonChipsを管理、indexはプレイヤーID
         private float[] allPlayersUdonChips = new float[64]; 
 		
-        private void Start()
+        void Start()
 		{
 			udonChips = GameObject.Find("UdonChips").GetComponent<UdonChips>();
+            var me = Networking.LocalPlayer;
+            allPlayersUdonChips[me.playerId] = udonChips.money;
+            ShowAllPlayerUdonChips();
 		}
 
         int t = 0;
         void Update() 
         {
+            if (udonChips == null)
+                return;
             // なんとなく間隔をあける
             t++;
             if(t > 100)
@@ -43,23 +48,13 @@ namespace aki_lua87.UdonScripts.Commons
                 }
             }
         }
-
-        public override void OnPlayerLeft(VRCPlayerApi player)
-        {
-            ShowAllPlayerUdonChips();
-        }
-        
         public override void OnPostSerialization(SerializationResult result)
         {
-            if (!result.success)
-            {
-                // 変数更新
-                localUC = udonChips.money;
-                ShowAllPlayerUdonChips();
-                // 自分の同期用変数をクリア
-                var me = Networking.LocalPlayer;
-                syncAllPlayersUdonChips[me.playerId] = 0;
-            }
+            // 変数更新
+            localUC = udonChips.money;
+            // 自分の同期用変数をクリア
+            var me = Networking.LocalPlayer;
+            syncAllPlayersUdonChips[me.playerId] = 0;
         }
 
         public override void OnDeserialization()
@@ -67,7 +62,7 @@ namespace aki_lua87.UdonScripts.Commons
             var index = 0;
             foreach (var uc in syncAllPlayersUdonChips)
             {
-                if(uc == 0)
+                if(uc == 0f)
                 {
                     index++;
                     continue;
@@ -93,10 +88,12 @@ namespace aki_lua87.UdonScripts.Commons
         {
             // 同期
             var me = Networking.LocalPlayer;
-            Networking.SetOwner(me, this.gameObject);
+            if (!Networking.IsOwner(me, this.gameObject))
+                Networking.SetOwner(me, this.gameObject);
             allPlayersUdonChips[me.playerId] = udonChips.money;
             syncAllPlayersUdonChips[me.playerId] = udonChips.money;
             RequestSerialization();
+            ShowAllPlayerUdonChips();
         }
 
         public void AddMoney(float f)
@@ -132,7 +129,7 @@ namespace aki_lua87.UdonScripts.Commons
                     continue;
                 }
                 var pname = p.displayName;
-                text += $"{pname} : {uc} uc.";
+                text += $"{pname} : {(int)uc} uc.";
                 text += "\n";
             }
             if(allPlayersUdonChipsText == null)
