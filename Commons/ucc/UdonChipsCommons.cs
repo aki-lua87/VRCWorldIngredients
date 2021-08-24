@@ -16,6 +16,7 @@ namespace aki_lua87.UdonScripts.Commons
 
         // プレイヤー全体表示用オブジェクト
         [SerializeField] private Text allPlayersUdonChipsText;
+        [SerializeField] private int waitTime = 60;
 
         // 同期用配列
         [UdonSynced]
@@ -38,7 +39,7 @@ namespace aki_lua87.UdonScripts.Commons
                 return;
             // なんとなく間隔をあける
             t++;
-            if(t > 100)
+            if(t > waitTime)
             {
                 t = 0;
                 if(localUC != udonChips.money)
@@ -121,7 +122,7 @@ namespace aki_lua87.UdonScripts.Commons
         {
             var text = "";
             var index = 0;
-            foreach (var uc in allPlayersUdonChips)
+            foreach (var uc in allPlayersUdonChips) // プレイヤーでループのがいいかも？
             {
                 var p = VRCPlayerApi.GetPlayerById(index++);
                 if(p == null)
