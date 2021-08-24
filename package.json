@@ -1,0 +1,11 @@
+{
+    "name": "net.akakitune87.vrcwi",
+    "displayName": "Package Manager Test",
+    "version": "1.0.1",
+    "unity": "2018.3",
+    "description": "This package is\nfor testing package manager.",
+    "keywords": ["Test"],
+    "category": "Test",
+    "dependencies": {
+    }
+}
