@@ -16,33 +16,35 @@ namespace aki_lua87.UdonScripts.Commons
 
         // プレイヤー全体表示用オブジェクト
         [SerializeField] private Text allPlayersUdonChipsText;
-        [SerializeField] private int waitTime = 60;
 
         // 同期用配列
         [UdonSynced]
         private float[] syncAllPlayersUdonChips = new float[64]; // やけクソ初期化
         // 全プレイヤーのUdonChipsを管理、indexはプレイヤーID
-        private float[] allPlayersUdonChips = new float[64]; 
-		
+        private float[] allPlayersUdonChips = new float[64];
+
         void Start()
-		{
-			udonChips = GameObject.Find("UdonChips").GetComponent<UdonChips>();
+        {
+#if UNITY_EDITOR
+        return;
+#endif
+            udonChips = GameObject.Find("UdonChips").GetComponent<UdonChips>();
             var me = Networking.LocalPlayer;
             allPlayersUdonChips[me.playerId] = udonChips.money;
             ShowAllPlayerUdonChips();
-		}
+        }
 
         int t = 0;
-        void Update() 
+        void Update()
         {
             if (udonChips == null)
                 return;
             // なんとなく間隔をあける
             t++;
-            if(t > waitTime)
+            if (t > 100)
             {
                 t = 0;
-                if(localUC != udonChips.money)
+                if (localUC != udonChips.money)
                 {
                     // SyncUCの中でlocalUC更新
                     PushUdonChips();
@@ -63,7 +65,7 @@ namespace aki_lua87.UdonScripts.Commons
             var index = 0;
             foreach (var uc in syncAllPlayersUdonChips)
             {
-                if(uc == 0f)
+                if (uc == 0f)
                 {
                     index++;
                     continue;
@@ -120,29 +122,33 @@ namespace aki_lua87.UdonScripts.Commons
 
         private void ShowAllPlayerUdonChips()
         {
+#if UNITY_EDITOR
+        return;
+#endif
             var text = "";
-            var index = 0;
-            foreach (var uc in allPlayersUdonChips) // プレイヤーでループのがいいかも？
+            int index = 0;
+            foreach (var uc in allPlayersUdonChips)
             {
-                var p = VRCPlayerApi.GetPlayerById(index++);
-                if(p == null)
+                index++;
+                var p = VRCPlayerApi.GetPlayerById(index);
+                if (p == null)
                 {
                     continue;
                 }
                 var pname = p.displayName;
-                text += $"{pname} : {(int)uc} uc.";
+                text += $"{pname} : {uc} uc.";
                 text += "\n";
             }
-            if(allPlayersUdonChipsText == null)
+            if (allPlayersUdonChipsText == null)
             {
                 return;
             }
-            allPlayersUdonChipsText.text = text; 
+            allPlayersUdonChipsText.text = text;
         }
 
         public float GetMoneyByPlayerID(int id)
         {
-            if(id > allPlayersUdonChips.Length) return 0f;
+            if (id > allPlayersUdonChips.Length) return 0f;
             return allPlayersUdonChips[id];
         }
     }
